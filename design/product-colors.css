@@ -1,0 +1,29 @@
+/* Paper design handoff. Import when implementing the product designs. */
+:root {
+  --color-cf-brand: #284FCB;
+  --color-cf-brand-soft: #E5EDFF;
+  --color-cf-playbook: #7040B8;
+  --color-cf-playbook-soft: #F0E8FB;
+  --color-cf-tests: #076F76;
+  --color-cf-tests-soft: #DDF2F2;
+  --color-cf-warning: #975A10;
+  --color-cf-warning-soft: #FFF0CB;
+  --color-cf-success: #216A46;
+  --color-cf-success-soft: #E1F1E8;
+  --color-cf-danger: #AC3548;
+  --color-cf-danger-soft: #FBE7EB;
+  --color-cf-workspace: #EEF2FA;
+  --color-cf-ink: #17243E;
+  --color-cf-muted: #4E5D75;
+  --color-cf-border: #CCD5E5;
+  --color-app-ground: var(--color-cf-workspace);
+  --color-app-ink: var(--color-cf-ink);
+  --color-app-muted: var(--color-cf-muted);
+  --color-app-border: var(--color-cf-border);
+  --color-app-active: var(--color-cf-brand-soft);
+  --color-app-selection: #91ABF2;
+  --color-lp-focus: var(--color-cf-brand);
+  --color-lp-ground: #FFFFFF;
+  --color-lp-ink: var(--color-cf-ink);
+  --color-lp-muted: var(--color-cf-muted);
+}
