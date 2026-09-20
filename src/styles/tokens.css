@@ -1,0 +1,42 @@
+:root {
+  --color-lp-ground: #FCF9F7;
+  --color-lp-surface: #FFFFFF;
+  --color-lp-ink: #242424;
+  --color-lp-muted: #68625E;
+  --color-lp-border: #DED8D3;
+  --color-lp-focus: #315EAD;
+  --font-lp-sans: Inter;
+  --font-lp-serif: Georgia;
+  --breakpoint-lp-mobile: 640px;
+  --container-lp-hero: 666px;
+  --container-lp-nav: 920px;
+  --text-lp-label: 13px;
+  --text-lp-body: 16px;
+  --text-lp-quote: 32px;
+  --text-lp-section: 54px;
+  --text-lp-display: 66px;
+  --font-weight-lp-normal: 400;
+  --font-weight-lp-medium: 500;
+  --tracking-lp-display: -0.03em;
+  --leading-lp-body: 24px;
+  --leading-lp-display: 66px;
+  --radius-lp-panel: 26px;
+  --radius-lp-pill: 999px;
+  --spacing-lp-sm: 8px;
+  --spacing-lp-md: 16px;
+  --spacing-lp-lg: 40px;
+  --spacing-lp-xl: 60px;
+}
+:root {
+  --color-app-ground: #FCFDFE;
+  --color-app-surface: #FFFFFF;
+  --color-app-ink: #1A1C1E;
+  --color-app-muted: #62676B;
+  --color-app-border: #E5E7E9;
+  --color-app-active: #EEF0F2;
+  --color-app-selection: #A9D2E5;
+  --radius-app-card: 16px;
+  --radius-app-control: 10px;
+  --spacing-app-grid: 20px;
+  --container-app-sidebar: 280px;
+}

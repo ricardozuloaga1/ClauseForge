@@ -1,0 +1,1 @@
+import{chatPanel}from './components/assistant.js';const reopen=document.querySelector('#reopen');const panel=chatPanel({onClose:()=>{panel.hidden=true;reopen.hidden=false;reopen.focus()}});document.querySelector('#chat-root').append(panel);reopen.addEventListener('click',()=>{panel.hidden=false;reopen.hidden=true;panel.querySelector('textarea').focus()});

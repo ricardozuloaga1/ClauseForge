@@ -1,0 +1,41 @@
+import {initial} from './domain.js';
+export type Upload={id:string;name:string;size:number;role:string;date:string;status:'ready'|'failed'|'processing'};
+export type Matter={id:string;name:string;party:string;counterparty:string;context:string;uploads:Upload[];created:string;setup:boolean};
+export type Rule={id:string;topic:string;condition:string;preferred:string;fallback:string;escalation:string;minMonths:number;allowFallback:boolean};
+export type Playbook={id:string;name:string;version:number;rules:Rule[];publishedAt?:string};
+export type EvalCase={id:string;topic:string;kind:string;input:string;expected:'clear'|'finding'|'manual'};
+export type Result={caseId:string;actual:'clear'|'finding'|'manual'|'no-output';pass:boolean};
+export type Run={id:string;at:string;playbook:Playbook;status:'running'|'completed'|'cancelled'|'error';results:Result[]};
+export type Draft={id:string;matter:string;topic:string;date:string;order:string;text:string;sources:string[];savedAt:string};
+export type Workspace={schema:1;active:string;matters:Matter[];drafts:Draft[];published:Playbook[];draft:Playbook|null;runs:Run[];events:{id:string;at:string;matter:string;label:string;route:string}[]};
+export const seedRules=():Rule[]=>initial().findings.map((f,i)=>({id:'R-'+(i+1),topic:initial().clauses[i].topic,condition:'Flag a missing clause or language below the customer position.',preferred:f.preferred,fallback:f.fallback,escalation:'Escalate material departures to the legal owner.',minMonths:12,allowFallback:true}));
+export function workspaceSeed():Workspace{return {schema:1,active:'MAT-001',matters:[{id:'MAT-001',name:'Harbor Cloud renewal',party:'Northstar Analytics',counterparty:'Harbor Cloud',context:'Customer renewal · OF-2026',uploads:[],created:'2026-09-07',setup:true}],drafts:[],published:[{id:'PB-1.2',name:'Customer playbook',version:2,rules:seedRules(),publishedAt:'2026-09-02'}],draft:null,runs:[],events:[]};}
+export function logEvent(w:Workspace,label:string,route:string):Workspace{return {...w,events:[{id:crypto.randomUUID(),at:new Date().toISOString(),matter:w.active,label,route},...w.events]};}
+export function validateRule(r:Rule):string[]{return [!r.topic.trim()&&'Topic is required.',!r.condition.trim()&&'Condition is required.',!r.preferred.trim()&&'Preferred wording is required.',!r.fallback.trim()&&'Fallback wording is required.',!r.escalation.trim()&&'Escalation is required.',(!Number.isFinite(r.minMonths)||r.minMonths<1||r.minMonths>36)&&'Liability threshold must be 1–36 months.'].filter(Boolean) as string[];}
+export function cases():EvalCase[]{return initial().clauses.flatMap((c,i)=>{const f=initial().findings[i];return [{kind:'acceptable',input:f.preferred,expected:'clear' as const},{kind:'unacceptable',input:c.source,expected:'finding' as const},{kind:'missing',input:'',expected:'finding' as const},{kind:'ambiguous',input:'Subject to terms to be agreed by the parties.',expected:'manual' as const}].map((v,j)=>({id:`CASE-${i+1}${j+1}`,topic:c.topic,...v}));});}
+// Deterministic fixture evaluator. It inspects text, not the expected label or case kind.
+export function evaluate(input:string,rule:Rule):Result['actual']{
+ if(!input.trim())return 'finding';
+ if(rule.topic==='Liability'&&/three months/.test(input))return rule.minMonths<=3?'clear':'finding';
+ if(input===rule.preferred||(rule.allowFallback&&input===rule.fallback))return 'clear';
+ if(initial().clauses.some(c=>c.topic===rule.topic&&c.source===input))return 'finding';
+ return 'manual';
+}
+export function evaluateCase(c:EvalCase,p:Playbook,noOutput=false):Result{const rule=p.rules.find(r=>r.topic===c.topic);const actual=noOutput||!rule?'no-output':evaluate(c.input,rule);return {caseId:c.id,actual,pass:actual===c.expected};}
+export const fingerprint=(p:Playbook)=>JSON.stringify({name:p.name,rules:p.rules});
+export function canPublish(p:Playbook,runs:Run[]):boolean{return p.rules.length===5&&new Set(p.rules.map(r=>r.topic)).size===5&&p.rules.every(r=>seedRules().some(s=>s.topic===r.topic))&&p.rules.every(r=>!validateRule(r).length)&&runs.some(r=>r.status==='completed'&&fingerprint(r.playbook)===fingerprint(p)&&r.results.length===20&&cases().every(c=>r.results.filter(x=>x.caseId===c.id).length===1&&r.results.some(x=>x.caseId===c.id&&x.pass&&x.actual===c.expected&&evaluateCase(c,p).actual===x.actual)));}
+export function publish(w:Workspace):Workspace{if(!w.draft||!canPublish(w.draft,w.runs))return w;const version=Math.max(...w.published.map(p=>p.version))+1;const p={...structuredClone(w.draft),id:`PB-1.${version}`,version,publishedAt:new Date().toISOString()};return logEvent({...w,published:[...w.published,p],draft:null},'Published '+p.id,'/playbooks');}
+export function amendmentScope(topic:string,date:string,order:string,missing=false,conflict=false):{status:'clear'|'warning';summary:string;sources:string[]}{
+ if(!date)return {status:'warning',summary:'Choose an as-of date before drawing a conclusion.',sources:[]};
+ if(date<'2025-01-12'||missing)return {status:'warning',summary:'Source set incomplete. No definitive conclusion is available.',sources:[]};
+ if(conflict)return {status:'warning',summary:'Conflicting source instructions require a recorded legal decision. Do not infer precedence from dates alone.',sources:['DOC-MSA','DOC-A1']};
+ if(topic==='Payment')return date>='2026-03-01'&&order==='OF-2025'?{status:'clear',summary:'Amendment No. 2 provides 45 days for undisputed invoices solely under OF-2025. It does not change other orders.',sources:['DOC-A2']}:{status:'warning',summary:'The 45-day override does not apply to this date/order scope. The supplied MSA excerpt does not establish a base payment period. Inspect the complete agreement before drafting.',sources:date>='2026-03-01'?['DOC-MSA','DOC-A2']:['DOC-MSA']};
+ if(topic==='Liability'&&date>='2025-06-01')return {status:'clear',summary:'Amendment No. 1 replaces MSA §12.1 with a twelve-month cap. Its relationship to an order-specific override still requires review.',sources:['DOC-MSA','DOC-A1']};
+ return {status:'warning',summary:'No applicable topic amendment is established by these excerpts. Inspect the full signed sources; silence does not resolve the term.',sources:['DOC-MSA']};
+}
+export function validUpload(name:string,size:number){return /\.docx$/i.test(name)&&size>0&&size<=20*1024*1024;}
+// Validate all nested data before rendering browser-local records. Invalid caches are discarded.
+export function restoreWorkspace(raw:string|null):Workspace|null{try{if(!raw)return null;const w=JSON.parse(raw) as Workspace;const str=(v:unknown)=>typeof v==='string';const rule=(r:Rule)=>r&&['id','topic','condition','preferred','fallback','escalation'].every(k=>str(r[k as keyof Rule]))&&typeof r.minMonths==='number'&&typeof r.allowFallback==='boolean';const pb=(p:Playbook)=>p&&str(p.id)&&str(p.name)&&Number.isInteger(p.version)&&Array.isArray(p.rules)&&p.rules.every(rule);if(w.schema!==1||!str(w.active)||!Array.isArray(w.matters)||!w.matters.length||!w.matters.every(m=>['id','name','party','counterparty','context','created'].every(k=>str(m[k as keyof Matter]))&&typeof m.setup==='boolean'&&Array.isArray(m.uploads)&&m.uploads.every(u=>str(u.id)&&str(u.name)&&str(u.role)&&str(u.date)&&typeof u.size==='number'&&['ready','processing','failed'].includes(u.status)))||!w.matters.some(m=>m.id===w.active)||new Set(w.matters.map(m=>m.id)).size!==w.matters.length)return null;
+ if(!Array.isArray(w.published)||!w.published.length||!w.published.every(pb)||w.draft!==null&&!pb(w.draft)||!Array.isArray(w.drafts)||!w.drafts.every(d=>['id','matter','topic','date','order','text','savedAt'].every(k=>str(d[k as keyof Draft]))&&Array.isArray(d.sources)&&d.sources.every(str))||!Array.isArray(w.events)||!w.events.every(e=>['id','at','matter','label','route'].every(k=>str(e[k as keyof typeof e])))||!Array.isArray(w.runs)||!w.runs.every(r=>str(r.id)&&str(r.at)&&pb(r.playbook)&&['running','completed','cancelled','error'].includes(r.status)&&Array.isArray(r.results)&&r.results.every(x=>str(x.caseId)&&typeof x.pass==='boolean'&&['clear','finding','manual','no-output'].includes(x.actual))))return null;
+ if(JSON.stringify(w.published.find(p=>p.id==='PB-1.2'))!==JSON.stringify(workspaceSeed().published[0]))return null;
+ return {...w,runs:w.runs.map(r=>r.status==='running'?{...r,status:'cancelled'}:r)};}catch{return null;}}

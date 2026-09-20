@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+node_modules/
+dist/
+.test-build/
+.gstack/
+AGENTS.md
+work/
+design/

@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": ".test-build",
+    "noEmit": false
+  },
+  "include": [
+    "product/domain.ts",
+    "product/domain.test.ts",
+    "product/workflows.ts",
+    "product/workflows.test.ts"
+  ]
+}
