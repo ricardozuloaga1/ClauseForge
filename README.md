@@ -10,6 +10,11 @@ for the system invariants, engineering narrative, trust boundaries, and producti
 gaps. ClauseForge is a synthetic-data, production-minded reference implementation;
 it is not approved for confidential documents or unsupervised legal decisions.
 
+The next infrastructure layer is documented in
+[`docs/LIVING_PLAYBOOKS.md`](docs/LIVING_PLAYBOOKS.md): reviewer actions become
+evidence for proposed playbook changes, but only evaluated and approved versions
+can govern new reviews.
+
 The local app includes all primary pages: matter creation/upload metadata/setup, review and decisions, scoped amendment exploration/drafting, playbook editing, versioned tests/results, activity and export. Sixteen domain tests cover the key invariants. Uploads are metadata-only; review and evaluations use disclosed synthetic fixtures. Real AI, DOCX fidelity and backend services remain M4/M5. Undo history lasts only for the current session.
 
 The component galleries remain at index.html, app.html, editor.html and assistant.html. They can also run independently with `python3 -m http.server 4173`; the React product requires Vite or the built dist directory.
